@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require("uuid");
 // use this data. Changes will persist until the server (backend) restarts.
 const { flights, reservations } = require("./data");
 
-const { MongoClient, Db } = require("mongodb");
+const { MongoClient, Db, ObjectId } = require("mongodb");
 
 require("dotenv").config();
 const { MONGO_URI } = process.env;
@@ -136,12 +136,13 @@ const updateReservation = async (req, res) => {
 // deletes a specified reservation
 const deleteReservation = async (req, res) => {
     const client = new MongoClient(MONGO_URI, options);
-    const {reservation} = req.params.reservation
+    const {reservation} = req.params
     // const reservationBody = req.body;
     const flightId = req.body.flight
     const ID = req.body.id;
     const seat = req.body.seat;
-    const query = {_id: reservation, id: ID};
+    const query = {_id: ObjectId(reservation)};
+
     
 
     await client.connect();
@@ -149,11 +150,11 @@ const deleteReservation = async (req, res) => {
     const db = client.db();
     console.log("connected!");
 
-    const result = await db.collection("Reservations").deleteOne(query);
-    const flightResult = await db.collection("Flights").findOneAndUpdate({ _id: flightId, "seats.id": seat }, {$set:{"seat.$.isAvailable":true}})
-    console.log(result);
-    if(result.deleteCount !== 0){
-        res.status(204).json({status: 204, message: "Successfully deleted the reservation"})
+    const result = await db.collection("Reservations").findOneAndDelete(query);
+    const flightResult = await db.collection("Flights").findOneAndUpdate({ _id: result.value.flight, "seats.id": result.value.seat }, {$set:{"seat.$.isAvailable":true}}, {returnNewDocument:true})
+    console.log(flightResult.value);
+    if(result.value && flightResult.value){
+        res.status(200).json({status: 200, message: "Successfully deleted the reservation"})
     } else {
         res.status(404).json({status: 404, message: "Oops! Reservation could not be deleted"})
     }
