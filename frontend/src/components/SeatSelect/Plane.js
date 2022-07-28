@@ -74,12 +74,10 @@ const Seat = styled.input`
   width: 30px;
   margin: 0;
 
-  &:checked {
-    span {
+  &:checked + span{
       background: var(--color-alabama-crimson);
       color: #fff;
       font-weight: 700;
-    }
   }
 `;
 const SeatNumber = styled.span`
