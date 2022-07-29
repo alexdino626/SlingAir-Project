@@ -3,15 +3,39 @@ import styled from "styled-components";
 
 const Plane = ({}) => {
   const [seating, setSeating] = useState([]);
-
+  const [flightId, setFlightId] = useState(null);
+  const [flight, setFlight] = useState(null);
+  
   useEffect(() => {
-    fetch('/api/get-flight/:flight')
+    fetch(`/api/get-flight/${flightId}`)
     .then(res => res.json())
-    .then((data) => setState(data))
+    .then((data) =>{ 
+    setSeating(data.data)
+    console.log(data);
+    })
+    // TODO: get seating data for selected flight
+  }, [flightId]);
+  
+  useEffect(() => {
+    fetch('/api/get-flights')
+    .then(res => res.json())
+    .then((data) => {
+      setFlight(data)
+      console.log(data);
+    })
     // TODO: get seating data for selected flight
   }, []);
 
+
   return (
+  <>
+      <Div>
+            <h2>Flight Number</h2>
+            <Select onChange= {(ev)=> setFlightId(ev.target.value)}>
+                <option value={"flightList"} >---Choose your flight---</option>
+                <option value={"SA231"}>SA231</option>
+            </Select>
+        </Div>
     <Wrapper>
       {seating && seating.length > 0 ? (
         seating.map((seat) => (
@@ -32,6 +56,7 @@ const Plane = ({}) => {
         <Placeholder>Select a Flight to view seating.</Placeholder>
       )}
     </Wrapper>
+  </>
   );
 };
 
@@ -115,5 +140,14 @@ const Unavailable = styled(SeatNumber)`
   cursor: not-allowed;
   opacity: 0.4;
 `;
+
+const Div = styled.div`
+background-color: var(--color-alabama-crimson);
+display: flex;
+`
+
+const Select = styled.select`
+margin-left: 15px;
+`
 
 export default Plane;

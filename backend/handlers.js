@@ -138,9 +138,9 @@ const deleteReservation = async (req, res) => {
     const client = new MongoClient(MONGO_URI, options);
     const {reservation} = req.params
     // const reservationBody = req.body;
-    const flightId = req.body.flight
-    const ID = req.body.id;
-    const seat = req.body.seat;
+    // const flightId = req.body.flight
+    // const ID = req.body.id;
+    // const seat = req.body.seat;
     const query = {_id: ObjectId(reservation)};
 
     
@@ -151,7 +151,13 @@ const deleteReservation = async (req, res) => {
     console.log("connected!");
 
     const result = await db.collection("Reservations").findOneAndDelete(query);
-    const flightResult = await db.collection("Flights").findOneAndUpdate({ _id: result.value.flight, "seats.id": result.value.seat }, {$set:{"seat.$.isAvailable":true}}, {returnNewDocument:true})
+    const flightResult = await db
+        .collection("Flights")
+        .findOneAndUpdate(
+        { _id: result.value.flight, "seats.id": result.value.seat },
+        { $set: { "seat.$.isAvailable": true } },
+        { returnNewDocument: true }
+        );
     console.log(flightResult.value);
     if(result.value && flightResult.value){
         res.status(200).json({status: 200, message: "Successfully deleted the reservation"})
