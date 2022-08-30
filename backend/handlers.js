@@ -95,78 +95,214 @@ const getSingleReservation = async (req, res) => {
 
 // creates a new reservation
 const addReservation = async (req, res) => {
+    const {flight, seat, givenName,surName, email} = req.body
     const client = new MongoClient(MONGO_URI, options);
-
-    try {
         await client.connect();
+        
         const db= client.db();
+        
         console.log("connect!");
 
-        await db.collection("Reservations").insertOne(req.body);
-        res.status(201).json({ status: 201, data: req.body, message: "Your reserevation has been booked"})
-    } catch (err) {
-        console.log(err.stack);
-        res.status(500).json({ status: 500, data: req.body, message: err.message})
-    }
+        if (!flight || !givenName || !surName || !email || !seat) {
+            res.status(400).json({ status: 400, message: "Missing required fields" });
+            return;
+          } // email validation
+            else if (
+            !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
+                email
+            )
+            ) {
+            res.status(400).json({ status: 400, message: "Invalid email address" });
+            return;
+          } // if validation passes, create a new reservation
+            else {
+            let availableSeat = false;
+        
+            const seatAvailability = await db
+                .collection("Flights")
+                .findOne({ _id: flight });
+        
+            seatAvailability.seats.forEach((seat) => {
+                if (seat.isAvailable && seat.id === req.body.seat) {
+                seat.isAvailable = false;
+                availableSeat = true;
+                }
+            });
+        
+            const newReservationHelp = {
+                _id: uuidv4(),
+                ...req.body,
+            };
+        
+            const setNewSeatValue = {
+                $set: {
+                seats: seatAvailability.seats,
+                },
+            };
+        
+            if (availableSeat) {
+                try {
+                const result = await db
+                    .collection("Flights")
+                    .updateOne({ _id: flight }, setNewSeatValue);
+        
+                const newReservation = await db
+                    .collection("Reservations")
+                    .insertOne(newReservationHelp);
+        
+                // console.log("add reservation result..",result);
+        
+                res.status(200).json({
+                    status: 200,
+                    reservation: newReservationHelp,
+                    message: "reservaton has been successfully created",
+                });
+        
+                client.close();
+                console.log("disconnected!");
+                } catch (err) {
+                res.status(400).json({ status: 500, message: err.message });
+                }
+            } else {
+                res.status(400).json({ status: 400, message: "Seat is not available" });
+                return;
+            }
+            }
 };
 
 // updates an existing reservation
 const updateReservation = async (req, res) => {
-    const client = new MongoClient(MONGO_URI, options);
-    const reservationBody = req.body;
-    const ID = req.body.id;
-    const seat = req.body.seat;
-    const query = {id:ID};
+    const { flight, givenName, surName, email, seat } = req.body;
 
-    const newValues = { $set: {...req.body} };
-
-    await client.connect();
-
-    const db = client.db();
-    console.log("connected!");
-
-    await db.collection("Reservations").updateOne(query, newValues);
-    res.status(200).json({status: 200, data: reservationBody, message: "Your reservation was updated"});
-
+    const reservationId = req.params.reservation;
     
-    client.close();
-    console.log("disconnected!");
+    const query = { _id: reservationId };
+
+        // validation of data
+        if (!flight || !givenName || !surName || !email || !seat) {
+        res.status(400).json({ status: 400, message: "Missing required fields" });
+        return;
+        } // email validation
+        else if (
+        !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
+            email
+        )
+        ) {
+        res.status(400).json({ status: 400, message: "Invalid email address" });
+        return;
+        } // if validation passes, update the reservation
+        else {
+        try {
+            const client = new MongoClient(MONGO_URI, options);
+            await client.connect();
+        console.log("connected!");
+
+            const db = client.db();
+    
+            const selectedResult = await db.collection("Reservations").findOne(query);
+
+            if (seat !== selectedResult.seat) {
+            const flight = selectedResult.flight;
+            const flightInformation = await db
+                .collection("Flights")
+                .findOne({ _id: flight });
+    
+            const newSeatTest = flightInformation.seats.find(
+                (item) => item.id === seat
+            );
+
+            if (!newSeatTest.isAvailable) {
+                res
+                .status(404)
+                .json({ status: 404, message: "Seat is not available" });
+                return;
+            } else {
+                const newSeat = await db
+                .collection("Flights")
+                .updateOne(
+                    { _id: flight, "seats.id": seat },
+                    { $set: { "seats.$.isAvailable": false } }
+                );
+    
+                const OldSeat = await db
+                .collection("Flights")
+                .updateOne(
+                    { _id: flight, "seats.id": selectedResult.seat },
+                    { $set: { "seats.$.isAvailable": true } }
+                );
+            }
+            }
+    
+            // update the collection
+    
+            const finalResult = await db.collection("Reservations").updateOne(query, {
+            $set: {
+                flight: flight,
+                seat: seat,
+                givenName: givenName,
+                surName: surName,
+                email: email,
+            },
+            });
+    
+            // console.log("update reservation result..",result);
+    
+            res.status(200).json({
+            status: 200,
+            message: "Reservation updated successfully!",
+            reservation: finalResult, // i use this for reference
+            });
+    
+            client.close();
+            console.log("disconnected!");
+        } catch (err) {
+            res.status(500).json({ status: 500, message: err.message });
+        }
+    }
 };
 
 // deletes a specified reservation
 const deleteReservation = async (req, res) => {
     const client = new MongoClient(MONGO_URI, options);
-    const {reservation} = req.params
-    // const reservationBody = req.body;
-    // const flightId = req.body.flight
-    // const ID = req.body.id;
-    // const seat = req.body.seat;
-    const query = {_id: ObjectId(reservation)};
-
-    
+    const reservationId = req.params.reservation;    
 
     await client.connect();
-
+    
     const db = client.db();
     console.log("connected!");
+    
+    const query = { _id: reservationId };
 
-    const result = await db.collection("Reservations").findOneAndDelete(query);
-    const flightResult = await db
-        .collection("Flights")
-        .findOneAndUpdate(
-        { _id: result.value.flight, "seats.id": result.value.seat },
-        { $set: { "seat.$.isAvailable": true } },
-        { returnNewDocument: true }
-        );
-    console.log(flightResult.value);
-    if(result.value && flightResult.value){
-        res.status(200).json({status: 200, message: "Successfully deleted the reservation"})
-    } else {
-        res.status(404).json({status: 404, message: "Oops! Reservation could not be deleted"})
-    }
-
-    client.close();
-    console.log("disconnected!");
+    const findReservation = await db.collection("Reservations").findOneAndDelete(query);
+    if (findReservation) {
+        try {
+    
+            const updateFlightSeating = await db
+            .collection("Flights")
+            .updateOne(
+                { _id: findReservation.flight, "seats.id": findReservation.seat },
+                { $set: { "seats.$.isAvailable": true } }
+            );
+    
+            const deleteReservedOne = await db
+            .collection("Reservations")
+            .deleteOne(query);
+    
+            res.status(200).json({
+            status: 200,
+            message: "Reservation deleted successfully!",
+            reservation: deleteReservedOne,
+            flight: updateFlightSeating,
+            });
+    
+            client.close();
+            console.log("disconnected!");
+        } catch (err) {
+            res.status(500).json({ status: 500, message: err.message });
+        }
+        } else {
+        res.status(404).json({ status: 404, message: "Reservation not found" });
+        }
 };
 
 module.exports = {

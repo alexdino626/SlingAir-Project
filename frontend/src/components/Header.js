@@ -1,21 +1,23 @@
 import styled from "styled-components";
-import { NavLink } from "react-router-dom";
+import { NavLink,Link } from "react-router-dom";
 
 import slingairLogo from "../assets/logo_text.png";
 
-const Header = () => (
-  <Wrapper>
-    <Logo>
-      <h1>Sling Airlines</h1>
-    </Logo>
-    <Nav>
-      {/* TODO: only show link if the user has a reservation already */}
-      <>
-        <StyledNavLink to="/view-reservation">Reservation</StyledNavLink>
-      </>
-    </Nav>
-  </Wrapper>
-);
+const Header = () => {
+  const _id = localStorage.getItem("_id");
+  return (
+    <Wrapper>
+      <Link to="/" exact>
+        <Logo>
+          <h1>Sling Airlines</h1>
+        </Logo>
+      </Link>
+      <Nav>
+        {_id && <StyledNavLink to="/reservation">Reservation</StyledNavLink>}          
+      </Nav>
+    </Wrapper>
+  )
+};
 
 const Wrapper = styled.header`
   display: flex;

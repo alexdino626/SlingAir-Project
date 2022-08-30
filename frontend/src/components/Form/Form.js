@@ -26,9 +26,6 @@ const Form = ({}) => {
         setFormData({ ...formData, [name]: value });
         };
         const history = useHistory();
-        // const handleRedirect=()=> {
-        // history.push("/confirmed")
-        // }
 
         const handleClick = (ev) => {
             ev.preventDefault();

@@ -1,5 +1,5 @@
 const {flights, reservations} = require("./data.js");
-const { MongoClient, Db } = require("mongodb");
+const { MongoClient} = require("mongodb");
 
 require("dotenv").config();
 const { MONGO_URI } = process.env;
