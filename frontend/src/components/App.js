@@ -5,6 +5,7 @@ import Footer from "./Footer";
 import SeatSelect from "./SeatSelect";
 import Confirmation from "./Confirmation";
 import GlobalStyles from "./GlobalStyles";
+import Reservation from "./Reservation";
 
 const App = () => {
   return (
@@ -19,9 +20,9 @@ const App = () => {
           <Route exact path="/confirmed">
             <Confirmation />
           </Route>
-          {/* <Route exact path="/reservation">
+          <Route exact path="/reservation">
             <Reservation />
-          </Route> */}
+          </Route>
           <Route path="">404: Oops!</Route>
         </Switch>
         <Footer />

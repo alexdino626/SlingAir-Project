@@ -2,33 +2,59 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Reservation = () => {
-    const [reservationData, setReservationData] = useState({});
-    const [isLoaded, setIsLoaded] = useState(false);
-    const _id = localStorage.getItem("_id").replace(/"/g, "");
-    console.log(_id);
+    const [reservation, setreservation] = useState();
+    const [load, setLoad] = useState(false);
+
+    
+    const reservedId = localStorage.getItem("reservationId");
+
     useEffect(() => {
-    fetch(`/api/get-reservation/${_id}`)
-    .then((res) => res.json())
-    .then((data) => {
-        setReservationData(data.data);
-        setIsLoaded(true);
-        })
-        .catch((err) => console.log(err));
+        const fetchData = async () => {
+        const data = await fetch("/api/get-reservations");
+        const json = await data.json();
+        console.log(json);
+        setreservation(json.data);
+        setLoad(true);
+        return json;
+        };
+        fetchData().catch(() => {
+        console.log("S");
+        });
     }, []);
-    if (!isLoaded) {
-    return <></>
+    if (load === false) {
+        return <>loading</>;
     }
+
+    const filter = reservation.filter(
+        (x) => x.seat === localStorage.getItem("reservationId")
+    );
+    // const [reservationData, setReservationData] = useState({});
+    // const [isLoaded, setIsLoaded] = useState(false);
+    // const reservedId = localStorage.getItem("reservationId");
+    // console.log(_id);
+    // useEffect(() => {
+    // fetch(`/api/get-reservation/${reserveid}`)
+    // .then((res) => res.json())
+    // .then((data) => {
+    //     setReservationData(data.data);
+    //     setIsLoaded(true);
+    //     })
+    //     .catch((err) => console.log(err));
+    // }, []);
+    // if (!isLoaded) {
+    // return <></>
+    // }
     return (
         <Wrapper>
             <Div>
                 <P>Your flight is confirmed!</P>
-                <Results>Reservation #: {reservationData._id}</Results>
-                <Results>Flight #: {reservationData.flight}</Results>
-                <Results>Seat #: {reservationData.seat}</Results>
+                <Results>Reservation #: {filter[0]._id}</Results>
+                <Results>Flight #: {filter[0].flight}</Results>
+                <Results>Seat #: {filter[0].seat}</Results>
                 <Results>
-                    Name: {reservationData.givenName} {reservationData.surname}
+                    Name: {filter[0].givenName} {filter[0].surname}
                 </Results>
-                <Results>email: {reservationData.email}</Results>
+                <Results>email: {filter[0].email}</Results>
             </Div>
         </Wrapper>
     );

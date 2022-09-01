@@ -21,7 +21,7 @@ const batchImport = async() => {
 
     await client.connect();
 
-    const db = client.db();
+    const db = client.db("sling_air");
     console.log("connected!");
     await db.collection("Flights").insertOne({_id: "SA231", flight: "SA231", seats: flights.SA231});
     await db.collection("Reservations").insertMany(reservations);

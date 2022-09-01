@@ -22,7 +22,7 @@ const getFlights = async(req, res) => {
 
     await client.connect();
 
-    const db = client.db();
+    const db = client.db("sling_air");
     console.log("connected!");
     const flight = await db.collection("Flights").find().toArray();
     // console.log(flight);
@@ -39,7 +39,7 @@ const getFlight = async(req, res) => {
     // console.log(flight);
     await client.connect();
 
-    const db = client.db();
+    const db = client.db("sling_air");
     const flights  = await db.collection("Flights").findOne({_id: flight})
     // console.log(flights);
     if(!flights){
@@ -60,7 +60,7 @@ const client = new MongoClient(MONGO_URI, options);
 
 await client.connect();
 
-const db = client.db();
+const db = client.db("sling_air");
 const reservation  = await db.collection("Reservations").find().toArray();
 if(!reservation){
     res.status(404).json({status: 404, message: "No Reservation Found"});
@@ -74,7 +74,8 @@ console.log("disconnected!");
 
 // returns a single reservation
 const getSingleReservation = async (req, res) => {
-    const reservationId = req.params.reservation
+    const reservationId = req.params.reservationId
+    
     
     const client = new MongoClient(MONGO_URI, options);
     
@@ -82,16 +83,15 @@ const getSingleReservation = async (req, res) => {
 
     const db = client.db("sling_air");
 
-    const query = {_id: ObjectId(reservationId) };
-
-    const reservations  = await db.collection("Reservations").findOne({_id: query})
-    if (result) {
+    const reservations  = await db.collection("Reservations").findOne({_id: reservationId})
+    console.log(reservations);
+    if (reservations) {
         try {
           // console.log("get single reservation result..",result);
     
         res.status(200).json({
             status: 200,
-            reservation: result,
+            reservation: reservations,
             message: "the requested reservation data",
         });
     
@@ -110,7 +110,7 @@ const addReservation = async (req, res) => {
     const client = new MongoClient(MONGO_URI, options);
         await client.connect();
         
-        const db= client.db();
+        const db= client.db("sling_air");
         
         console.log("connect!");
 
@@ -208,7 +208,7 @@ const updateReservation = async (req, res) => {
             await client.connect();
         console.log("connected!");
 
-            const db = client.db();
+            const db = client.db("sling_air");
     
             const selectedResult = await db.collection("Reservations").findOne(query);
 
@@ -279,7 +279,7 @@ const deleteReservation = async (req, res) => {
 
     await client.connect();
     
-    const db = client.db();
+    const db = client.db("sling_air");
     console.log("connected!");
     
     const query = { _id: reservationId };

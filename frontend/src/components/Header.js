@@ -4,7 +4,8 @@ import { NavLink,Link } from "react-router-dom";
 import slingairLogo from "../assets/logo_text.png";
 
 const Header = () => {
-  const _id = localStorage.getItem("_id");
+  let isBooked = localStorage.getItem("reservationId");
+
   return (
     <Wrapper>
       <Link to="/" exact>
@@ -13,7 +14,8 @@ const Header = () => {
         </Logo>
       </Link>
       <Nav>
-        {_id && <StyledNavLink to="/reservation">Reservation</StyledNavLink>}          
+        {isBooked ? (<StyledNavLink to="/reservation">Reservation</StyledNavLink>)
+        : null}          
       </Nav>
     </Wrapper>
   )
