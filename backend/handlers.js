@@ -74,24 +74,35 @@ console.log("disconnected!");
 
 // returns a single reservation
 const getSingleReservation = async (req, res) => {
+    const reservationId = req.params.reservation
+    
     const client = new MongoClient(MONGO_URI, options);
-    const {reservation} = req.params
-    // console.log(reservation);
+    
     await client.connect();
 
-    const db = client.db();
-    const reservations  = await db.collection("Reservations").findOne({id: reservation})
-    if(!reservations){
-        res.status(404).json({status: 404, message: "No Reservation Found"});
-    }else {
-        res.status(200).json({status: 200, data: reservations})
-    }
+    const db = client.db("sling_air");
 
+    const query = {_id: ObjectId(reservationId) };
+
+    const reservations  = await db.collection("Reservations").findOne({_id: query})
+    if (result) {
+        try {
+          // console.log("get single reservation result..",result);
+    
+        res.status(200).json({
+            status: 200,
+            reservation: result,
+            message: "the requested reservation data",
+        });
+    
     client.close();
-    console.log("disconnected!");
-
-
-};
+        } catch (err) {
+            res.status(500).json({ status: 500, message: err.message });
+        }
+        } else {
+        res.status(404).json({ status: 404, message: "reservation not found" });
+        }
+    };
 
 // creates a new reservation
 const addReservation = async (req, res) => {

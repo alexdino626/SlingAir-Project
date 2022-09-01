@@ -1,20 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { PlaneContext } from "../SeatSelect/PlaneContext";
 import Button from "./Button";
 import Input from "./Input"
+
 
 
 const Form = ({}) => {
     const initialState = {
         givenName: "",
-        surname: "",
+        surName: "",
         email: "",
     }
 
     const [formData, setFormData] = useState(initialState);
     const [disabled, setDisabled] = useState(true);
     const [subStatus, setSubStatus] = useState("idle");
+    const { seat, selectedFlight } = useContext(PlaneContext);
 
     useEffect(() => {
     Object.values(formData).includes("") || formData.order === "undefined"
@@ -32,7 +35,7 @@ const Form = ({}) => {
             setSubStatus("pending");
             fetch("/api/add-reservation", {
                 method: "POST",
-                body: JSON.stringify(formData),
+                body: JSON.stringify({...formData, seat, flight: selectedFlight}),
                 headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
@@ -40,9 +43,11 @@ const Form = ({}) => {
             })
                 .then((res) => res.json())
                 .then((json) => {
+                    console.log(json)
                 const { status, error } = json;
-                if (status === "success") {
+                if (status === 200) {
                     setSubStatus("confirmed");
+                    localStorage.setItem("reservationId", json.reservation.seat)
                     history.push("/confirmed")
                 } else if (error) {
                     setSubStatus("error");
@@ -59,7 +64,7 @@ const Form = ({}) => {
                 placeholder="First name"
                 handleChange={handleChange}/>
                 <Input
-                name="surname"
+                name="surName"
                 type="text"
                 placeholder="Last name"
                 handleChange={handleChange} 

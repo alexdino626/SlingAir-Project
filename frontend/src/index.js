@@ -1,12 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./components/App";
-import { FlightContext, FlightProvider } from "./components/FlightContext";
+import { FlightProvider } from "./components/FlightContext";
+import { PlaneProvider } from "./components/SeatSelect/PlaneContext";
+
 
 ReactDOM.render(
   <React.StrictMode>
     <FlightProvider>
-      <App />
+      <PlaneProvider>
+        <App />
+      </PlaneProvider>
     </FlightProvider>
   </React.StrictMode>,
   document.getElementById("root")

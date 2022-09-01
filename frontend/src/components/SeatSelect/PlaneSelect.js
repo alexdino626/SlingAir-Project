@@ -12,14 +12,18 @@ const PlaneSelect = () => {
     fetch("api/get-flights")
     .then((res) => res.json())
     .then((data) => {
-        setPlanes(data.data);
+        if(data.data){
+            setPlanes([data.data]);
+            console.log(data);
+        }
         })
-    .catch((err) => console.log(err));
-    }, []);
+    .catch((err) => console.error(err));
+    },[]);
 
     const selectFlightHandler = (event) => {
         setSelectedFlight(event.target.value);
     };
+    console.log({planes})
     return (
         <>
             <Wrapper>

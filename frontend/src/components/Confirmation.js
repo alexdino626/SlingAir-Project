@@ -1,22 +1,69 @@
-import { useContext } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import tombstone from "../assets/tombstone.png";
-import { FlightContext } from "./FlightContext";
 
 const Confirmation = () => {
-  const {seat, selectedFlight, givenName, surname, email} = useContext(FlightContext);
-  const _id = localStorage.getItem("_id");
-  console.log(_id.replace(/"/g, ""));
+  const [reservation, setreservation] = useState();
+  const [load, setLoad] = useState(false);
+
+  
+  const reservedId = localStorage.getItem("reservationId");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetch("/api/get-reservations");
+      const json = await data.json();
+      console.log(json);
+      setreservation(json.data);
+      setLoad(true);
+      return json;
+    };
+    fetchData().catch(() => {
+      console.log("S");
+    });
+  }, []);
+  if (load === false) {
+    return <>loading</>;
+  }
+
+  const filter = reservation.filter(
+    (x) => x.seat === localStorage.getItem("reservationId")
+  );
+  console.log(filter);
+  console.log(reservation);
+
+  // const [reservation, setReservation] = useState({});
+  // const [loading, setLoading] = useState(false)
+
+
+  // useEffect(() => {
+  //   fetch("/api/get-reservations")
+  //   .then(res => res.json())
+  //   .then((data) =>{
+  //   setLoading(true)
+  //   setReservation(data.reservation)
+  //   console.log(data);
+  //   })
+  // }, []);
+
+  // if(loading === false){
+  //   return <>loading</>
+  // }
+
   return <Wrapper>
           <Div>
-            <Confirm>Your flight is confirmed!</Confirm>
-            <Results>Reservation #: {_id.replace(/"/g, "")}</Results>
-            <Results>Seat #: {seat}</Results>
-            <Results>Name: {givenName} {surname}</Results>
-            <Results>email: {email}</Results>
-          </Div>
           <Img src={tombstone} />
+          <h1>Your reservation is confirmed</h1>
+          <ReservationInfo>
+            <ReservedInfo id={reservedId}></ReservedInfo>
+            <ReservedInfo><strong>Reservation #:</strong>{reservedId}</ReservedInfo>
+            <ReservedInfo><strong>Flight #:</strong> {filter[0].flight}</ReservedInfo>
+            <ReservedInfo><strong>Seat #:</strong> {filter[0].seat}</ReservedInfo>
+            <ReservedInfo><strong>Name:</strong> {filter[0].givenName} {filter[0].surName}</ReservedInfo>
+            <ReservedInfo><strong>Email:</strong> {filter[0].email}</ReservedInfo>
+          </ReservationInfo>
+          </Div>
         </Wrapper>;
 };
 
@@ -40,14 +87,17 @@ const Div = styled.div`
   padding: 50px;
   border-radius: 5px;
 `
-const Confirm = styled.p`
-color: var(--color-alabama-crimson);
-font-size: 32px;
-border-bottom: 3px solid var(--color-alabama-crimson);
+const ReservationInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 100%;
+  margin: 20px;
 `
-const Results = styled.p`
-  font-size: 18px;
+const ReservedInfo = styled.p`
 `
+
 const Img = styled.img`
   width: 100px;
   position: absolute;

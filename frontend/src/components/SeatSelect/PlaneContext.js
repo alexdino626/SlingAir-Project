@@ -14,8 +14,8 @@ export const PlaneProvider = ({ children }) => {
     useEffect(() => {
     fetch("api/get-flights")
     .then((res) => res.json())
-    .then((data) => {
-        setAllFlights(data.data);
+    .then((json) => {
+        setAllFlights(json.data);
         })
         .catch((err) => console.log(err));
     }, []);
