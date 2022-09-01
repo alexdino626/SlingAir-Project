@@ -185,9 +185,9 @@ const addReservation = async (req, res) => {
 const updateReservation = async (req, res) => {
     const { flight, givenName, surName, email, seat } = req.body;
 
-    const reservationId = req.params.reservation;
-    
-    const query = { _id: reservationId };
+    const reservationId = req.params.reservationId;
+    console.log(reservationId);
+    // const query = { _id: reservationId };
 
         // validation of data
         if (!flight || !givenName || !surName || !email || !seat) {
@@ -210,7 +210,8 @@ const updateReservation = async (req, res) => {
 
             const db = client.db("sling_air");
     
-            const selectedResult = await db.collection("Reservations").findOne(query);
+            const selectedResult = await db.collection("Reservations").findOne({_id: reservationId});
+            console.log(selectedResult);
 
             if (seat !== selectedResult.seat) {
             const flight = selectedResult.flight;
@@ -246,7 +247,7 @@ const updateReservation = async (req, res) => {
     
             // update the collection
     
-            const finalResult = await db.collection("Reservations").updateOne(query, {
+            const finalResult = await db.collection("Reservations").updateOne({_id: reservationId}, {
             $set: {
                 flight: flight,
                 seat: seat,
