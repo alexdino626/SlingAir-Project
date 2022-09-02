@@ -276,7 +276,7 @@ const updateReservation = async (req, res) => {
 // deletes a specified reservation
 const deleteReservation = async (req, res) => {
     const client = new MongoClient(MONGO_URI, options);
-    const reservationId = req.params.reservation;    
+    const reservationId = req.params.reservationId;    
 
     await client.connect();
     
