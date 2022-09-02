@@ -292,7 +292,7 @@ const deleteReservation = async (req, res) => {
             const updateFlightSeating = await db
             .collection("Flights")
             .updateOne(
-                { _id: findReservation.flight, "seats.id": findReservation.seat },
+                { _id: findReservation.value.flight, "seats.id": findReservation.value.seat },
                 { $set: { "seats.$.isAvailable": true } }
             );
     
